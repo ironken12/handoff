@@ -27,6 +27,7 @@ const PAGES = {
 
 function render() {
   const h = location.hash || '#/';
+  document.querySelectorAll('.coach.sheet').forEach(n => n.remove()); stage.style.bottom = '';
   let m, view, stop = null, active = 'tour';
   if ((m = h.match(/^#\/(tour|quick)\/(\d+)/))) {
     const seq = MODES[m[1]], pos = Math.min(seq.length, Math.max(1, +m[2]));
@@ -41,18 +42,22 @@ function render() {
   const wrap = view.kind === 'phone' ? `<div class="phone">${view.html}</div>` : view.html;
   stage.innerHTML = `<div class="fit" id="fit">${wrap}</div>`;
   fit(view);
-  if (stop) tour(stop);
+  if (stop) tour(stop, view);
   $('#hint').textContent = stop ? (stop.mode === 'quick' ? 'Quick tour' : 'Full tour') + ' · → next · ← back · Esc to explore' : (view.kind === 'page' ? '' : 'Explore mode · tap cards, buttons and the tab bar');
 }
 function fit(view) {
   const small = innerWidth <= 820, el = $('#fit');
+  // On phones the overview/end pages lay out natively and scroll instead of being shrunk
+  const flow = small && view.kind === 'page';
+  stage.classList.toggle('flow', flow);
+  if (flow) { el.style.cssText = ''; return; }
   const W = view.kind === 'phone' ? (small ? 440 : 476) : view.kind === 'desk' ? 1440 : view.w, H = view.kind === 'phone' ? (small ? 956 : 992) : view.kind === 'desk' ? 900 : view.h;
   const r = stage.getBoundingClientRect();
   const scale = Math.min((r.width - (small ? 12 : 32)) / W, (r.height - (small ? 8 : 28)) / H, view.kind === 'page' ? 1.15 : 1);
   el.style.width = W + 'px'; el.style.height = H + 'px'; el.style.transform = `scale(${scale})`;
 }
 const hashFor = (mode, pos, len) => pos > len ? '#/end' : pos < 1 ? '#/' : `#/${mode}/${pos}`;
-function tour({ mode, pos, seq, n }) {
+function tour({ mode, pos, seq, n }, view) {
   const [code, key, ch, title, body, why] = TOUR[n - 1];
   const host = stage.querySelector('.scr') || stage.querySelector('.desk');
   const tgt = host.querySelector(`[data-tour="${key}"]`);
@@ -67,6 +72,11 @@ function tour({ mode, pos, seq, n }) {
   let b = { x: 20, y: 120, w: W - 40, h: 200 };
   if (tgt) { const t = tgt.getBoundingClientRect(); b = { x: (t.left - hr.left) / k - 8, y: (t.top - hr.top) / k - 8, w: t.width / k + 16, h: t.height / k + 16 }; }
   Object.assign(spot.style, { left: b.x + 'px', top: b.y + 'px', width: b.w + 'px', height: b.h + 'px' });
+  // Desktop screens shrink a lot on a phone: show the coach card full size as a bottom sheet instead
+  if (desk && innerWidth <= 820) {
+    coach.classList.add('sheet'); coach.style.width = ''; document.body.appendChild(coach);
+    stage.style.bottom = coach.offsetHeight + 16 + 'px'; fit(view); return;
+  }
   const ch2 = coach.offsetHeight, cl = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
   const area = ([x, y]) => Math.max(0, Math.min(y + ch2, b.y + b.h) - Math.max(y, b.y)) * Math.max(0, Math.min(x + cw, b.x + b.w) - Math.max(x, b.x));
   const yy = v => cl(v, desk ? 24 : 56, H - ch2 - (desk ? 24 : 30)), xx = v => cl(v, 16, W - cw - 16);
@@ -103,6 +113,7 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && m) location.hash = '#/s/' + TOUR[MODES[m[1]][+m[2] - 1] - 1][0];
 });
 window.addEventListener('hashchange', render);
-window.addEventListener('resize', () => render());
+let lastW = innerWidth; // mobile address bars resize the height while scrolling; don't re-render the scrolling pages for that
+window.addEventListener('resize', () => { if (innerWidth !== lastW || !stage.classList.contains('flow')) { lastW = innerWidth; render(); } });
 document.fonts.ready.then(render);
 render();
