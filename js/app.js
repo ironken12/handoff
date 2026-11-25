@@ -40,10 +40,11 @@ function render() {
   document.querySelectorAll('.top nav button[data-k]').forEach(b => b.classList.toggle('on', b.dataset.k === active));
   prog.style.width = stop ? (stop.pos / stop.seq.length * 100) + '%' : (h === '#/end' ? '100%' : '0');
   const wrap = view.kind === 'phone' ? `<div class="phone">${view.html}</div>` : view.html;
+  curView = view;
   stage.innerHTML = `<div class="fit" id="fit">${wrap}</div>`;
   fit(view);
   if (stop) tour(stop, view);
-  $('#hint').textContent = stop ? (stop.mode === 'quick' ? 'Quick tour' : 'Full tour') + ' · → next · ← back · Esc to explore' : (view.kind === 'page' ? '' : 'Explore mode · tap cards, buttons and the tab bar');
+  $('#hint').textContent = stop ? (stop.mode === 'quick' ? 'Quick tour' : 'Full tour') + ' · → next · ← back · Esc to explore' : (view.kind === 'page' ? '' : 'Explore mode · tap, type and chat: every screen responds');
 }
 function fit(view) {
   const small = innerWidth <= 820, el = $('#fit');
@@ -113,7 +114,9 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && m) location.hash = '#/s/' + TOUR[MODES[m[1]][+m[2] - 1] - 1][0];
 });
 window.addEventListener('hashchange', render);
-let lastW = innerWidth; // mobile address bars resize the height while scrolling; don't re-render the scrolling pages for that
-window.addEventListener('resize', () => { if (innerWidth !== lastW || !stage.classList.contains('flow')) { lastW = innerWidth; render(); } });
+// Width changes redraw; height-only changes (mobile address bar, on-screen keyboard) just rescale,
+// so scrolling pages keep their place and text typed in explore mode isn't wiped.
+let lastW = innerWidth, curView;
+window.addEventListener('resize', () => { if (innerWidth !== lastW) { lastW = innerWidth; render(); } else if (document.querySelector('.coach.sheet')) render(); else if (curView) fit(curView); });
 document.fonts.ready.then(render);
 render();

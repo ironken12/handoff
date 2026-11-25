@@ -12,14 +12,14 @@ svg{display:block;flex:none}
 /* ---------- page chrome ---------- */
 .top{position:fixed;inset:0 0 auto 0;height:60px;display:flex;align-items:center;gap:20px;padding:0 24px;background:var(--ink);color:var(--page);z-index:50}
 .logo{font:800 26px/1 Bricolage;letter-spacing:-.04em}.logo i{font-style:normal;color:var(--sig)}
-.top nav{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.top nav{display:flex;gap:6px;margin-left:auto;flex-wrap:nowrap;flex:none}
 .top nav button{padding:8px 14px;border-radius:999px;font-weight:600;font-size:14px;color:var(--page);border:1px solid #3A3A3A}
 .top nav button.on{background:var(--sig);border-color:var(--sig);color:var(--ink)}
-.top .tag{font:500 11px 'Geist Mono';letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+.top .tag{white-space:nowrap;flex:none;font:500 11px 'Geist Mono';letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
 .prog{position:fixed;top:60px;left:0;height:3px;background:var(--sig);z-index:50;transition:width .35s ease}
 .stage{position:fixed;inset:63px 0 0 0;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .fit{transform-origin:center center;position:relative;flex:none}
-.hint{font:500 11px 'Geist Mono';letter-spacing:.06em;text-transform:uppercase;color:var(--dim);white-space:nowrap}
+.hint{font:500 11px 'Geist Mono';letter-spacing:.06em;text-transform:uppercase;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 
 /* ---------- phone device: iPhone 18 Pro Max, 440x956 pt ---------- */
 .phone{width:476px;height:992px;border-radius:72px;background:#0B0B0B;padding:18px;box-shadow:0 40px 80px rgba(0,0,0,.25),inset 0 0 0 2px #2A2A2A}
@@ -84,7 +84,8 @@ svg{display:block;flex:none}
 .bub{max-width:300px;padding:14px 16px;border-radius:20px;font-size:16px;line-height:1.4}
 .bub.me{align-self:flex-end;background:var(--ink);color:var(--page);border-bottom-right-radius:6px}
 .bub.ai{background:var(--card);border:1px solid var(--line);border-bottom-left-radius:6px}
-.input{height:54px;border-radius:999px;border:1.5px solid var(--ink);background:#fff;display:flex;align-items:center;padding:0 20px;gap:10px;color:var(--dim);font-size:16px;flex:1}
+.input{height:54px;border-radius:999px;border:1.5px solid var(--ink);background:#fff;display:flex;align-items:center;padding:0 20px;gap:10px;color:var(--dim);font-size:16px;flex:none}
+.row>.input{flex:1}
 .field{height:54px;border-radius:16px;border:1.5px solid var(--ink);background:#fff;display:flex;align-items:center;padding:0 16px;font-size:16px}
 .tabbar{margin:0 16px 26px;height:74px;border-radius:37px;background:var(--ink);display:flex;align-items:center;justify-content:space-around;padding:0 10px;flex:none}
 .tabbar button{width:58px;height:58px;border-radius:29px;display:flex;align-items:center;justify-content:center;color:var(--page)}
@@ -118,7 +119,7 @@ svg{display:block;flex:none}
 /* ---------- small screens: drop the bezel, compact header ---------- */
 @media (max-width:820px){
   .top{height:52px;gap:10px;padding:0 12px}.top .tag,.hint{display:none}.logo{font-size:22px}
-  .top nav{flex-wrap:nowrap;overflow-x:auto;gap:4px;scrollbar-width:none}.top nav::-webkit-scrollbar{display:none}
+  .top nav{flex-wrap:nowrap;overflow-x:auto;gap:4px;scrollbar-width:none;flex:0 1 auto;min-width:0}.top nav::-webkit-scrollbar{display:none}
   .top nav button{padding:6px 10px;font-size:12px;white-space:nowrap}
   .prog{top:52px}.stage{inset:55px 0 0 0}
   .phone{padding:0;background:none;box-shadow:none;width:440px;height:956px;border-radius:0}
@@ -179,3 +180,11 @@ svg{display:block;flex:none}
 .tog{width:40px;height:24px;border-radius:12px;background:var(--line);position:relative;flex:none}
 .tog i{position:absolute;left:3px;top:3px;width:18px;height:18px;border-radius:9px;background:#fff;transition:left .2s}
 .tog.on{background:var(--ink)}.tog.on i{left:19px}
+/* explore-mode interactivity */
+.hin{all:unset;flex:1;min-width:0;width:100%;font:inherit;color:var(--ink);caret-color:var(--sig)}
+.hin::placeholder{color:var(--dim)}
+.dark .hin{color:var(--page)}
+.field:focus-within,.input:focus-within{box-shadow:0 0 0 3px rgba(255,74,28,.25)}
+.bub.typing{color:var(--dim);letter-spacing:.2em}
+#toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,20px);background:#111;color:#EFECE4;padding:12px 18px;border-radius:14px;font:500 14px/1.4 Geist,system-ui,sans-serif;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:100;max-width:90vw;box-shadow:0 8px 30px rgba(0,0,0,.25)}
+#toast.show{opacity:1;transform:translate(-50%,0)}
