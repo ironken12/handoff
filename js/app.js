@@ -37,6 +37,7 @@ function render() {
   else if ((m = h.match(/^#\/s\/(\w+)/)) && SCREENS[m[1]]) { view = SCREENS[m[1]](); active = /^(C|V|R|K|RB)/.test(m[1]) ? 'co' : /^U/.test(m[1]) ? 'uni' : 'app'; }
   else if (h === '#/end') { view = PAGES.end(); }
   else { view = PAGES.welcome(); active = 'home'; }
+  if (view.role) active = view.role;
   document.querySelectorAll('.top nav button[data-k]').forEach(b => b.classList.toggle('on', b.dataset.k === active));
   prog.style.width = stop ? (stop.pos / stop.seq.length * 100) + '%' : (h === '#/end' ? '100%' : '0');
   const wrap = view.kind === 'phone' ? `<div class="phone">${view.html}</div>` : view.html;
@@ -44,10 +45,13 @@ function render() {
   stage.innerHTML = `<div class="fit" id="fit">${wrap}</div>`;
   fit(view);
   if (stop) tour(stop, view);
-  $('#hint').textContent = stop ? (stop.mode === 'quick' ? 'Quick tour' : 'Full tour') + ' · → next · ← back · Esc to explore' : (view.kind === 'page' ? '' : 'Explore mode · tap, type and chat: every screen responds');
+  $('#hint').textContent = stop ? (stop.mode === 'quick' ? 'Quick tour' : 'Full tour') + ' · → next · ← back · Esc to explore' : (view.kind === 'page' || view.kind === 'doc' ? '' : 'Explore mode · tap, type and chat: every screen responds');
 }
 function fit(view) {
   const small = innerWidth <= 820, el = $('#fit');
+  // Reports are documents: real width, scroll vertically, on every screen size
+  stage.classList.toggle('doc', view.kind === 'doc');
+  if (view.kind === 'doc') { stage.classList.remove('flow'); el.style.cssText = ''; return; }
   // On phones the overview/end pages lay out natively and scroll instead of being shrunk
   const flow = small && view.kind === 'page';
   stage.classList.toggle('flow', flow);
