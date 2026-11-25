@@ -32,7 +32,7 @@ function phone(inner, o = {}) {
   <div class="body" style="${o.gap !== undefined ? 'gap:' + o.gap + 'px;' : ''}${o.pad ? 'padding:' + o.pad : ''}">${inner}</div>${o.tab ? tabbar(o.tab) : ''}<span class="homeind"></span></div>` };
 }
 const SIDE_CO = [['grid', 'Overview', 'C01'], ['brief', 'Openings'], ['inbox', 'Applications', 'C02', 18], ['users', 'Interns', 'C06'], ['lay', 'Onboarding', 'R01'], ['book', 'Knowledge Center', 'C04'], ['spark', 'Mentor Copilot', 'C05', 4], ['chart', 'Analytics', 'C08'], ['card', 'Billing', 'C07'], ['gear', 'Settings', 'RB01']];
-const SIDE_U = [['grid', 'Overview', 'U01'], ['cap', 'Students', 'U02'], ['eye', 'Internship Monitoring', 'U02'], ['bld', 'Companies'], ['file', 'Logbook', 'U03'], ['shield', 'Verify', 'U04', 7], ['chart', 'Analytics'], ['gear', 'Settings']];
+const SIDE_U = [['grid', 'Overview', 'U01'], ['cap', 'Students', 'U02'], ['eye', 'Internship Monitoring', 'U02'], ['brief', 'Partner internships', 'U05'], ['bld', 'Companies'], ['file', 'Logbook', 'U03'], ['shield', 'Verify', 'U04', 7], ['chart', 'Analytics'], ['gear', 'Settings']];
 const ME = { co: ['AP', 'Andi Pratama', 'Mentor · Product & Tech'], hr: ['SN', 'Sinta Nur', 'HR · Recruiting'], adm: ['BW', 'Budi Wijaya', 'Company admin'], uni: ['DS', 'Dewi Sartika', 'Admin Career Center'] };
 function desk(on, uni, inner, who) {
   const items = uni ? SIDE_U : SIDE_CO, [ma, mn, mr] = ME[who || (uni ? 'uni' : 'co')];
@@ -45,6 +45,18 @@ function desk(on, uni, inner, who) {
 const kv = (a, b) => `<div class="row sbw ts" style="padding:11px 0;border-top:1px solid var(--line)"><span class="mu">${a}</span><b style="text-align:right">${b}</b></div>`;
 const WARN = (s = 16) => I('alert', s, '#9A6400');
 const head = (lab, title, right = '') => `<div class="row sbw" style="align-items:flex-end"><div class="col" style="gap:8px"><span class="lab">${lab}</span><div class="h1" style="font-size:44px">${title}<i>.</i></div></div><div class="row">${right}</div></div>`;
+
+// Internships in the intern app. tags drive the filter chips; partner = posted by the student's university through a company partnership
+const JOBS = [
+  { co: 'Nusantara Digital', l: 'N', bg: 'var(--sig)', where: 'Jakarta · Hybrid · 90 days', role: 'Product Management Intern', skills: 'User research · Figma · PRD', fit: 94, tags: 'hybrid jakarta 3m', go: 'S07', tour: 'match', dark: 1 },
+  { co: 'Kopi Kilat', l: 'K', bg: 'var(--ink)', where: 'Bandung · On-site · 4 months', role: 'Growth Analyst Intern', skills: 'SQL · Experiments · Copywriting', fit: 81, tags: 'bandung onsite 4m' },
+  { co: 'Lumbung Data', l: 'L', bg: '#1E9E5A', where: 'Bandung · Hybrid · 3 months', role: 'Data Analyst Intern', skills: 'SQL · Python · Dashboards', fit: 78, tags: 'bandung hybrid 3m partner', partner: 'ITB', sks: 20 },
+  { co: 'Pasar Pintar', l: 'P', bg: '#9A6400', where: 'Jakarta · Remote · 3 months', role: 'UI/UX Design Intern', skills: 'Figma · Prototyping · Usability tests', fit: 74, tags: 'jakarta remote 3m' },
+  { co: 'Gerbang Logistik', l: 'G', bg: '#2E2E2E', where: 'Surabaya · On-site · 6 months', role: 'Operations Analyst Intern', skills: 'Excel · Process mapping · SQL', fit: 69, tags: 'surabaya onsite 6m partner', partner: 'ITB', sks: 20 },
+  { co: 'Teras Kreatif', l: 'T', bg: '#D93025', where: 'Bandung · Hybrid · 3 months', role: 'Content Marketing Intern', skills: 'Copywriting · Social media · Canva', fit: 63, tags: 'bandung hybrid 3m' }];
+const job = j => `<div class="card${j.dark ? ' k' : ''}"${j.tour ? ` data-tour="${j.tour}"` : ''}${j.go ? ` data-go="${j.go}"` : ''} data-tags="${j.tags}" style="gap:12px"><div class="row" style="gap:14px"><span class="logo-sq" style="background:${j.bg};color:${j.bg === 'var(--sig)' ? 'var(--ink)' : 'var(--page)'}">${j.l}</span><div class="col grow"><b class="t">${j.co}</b><span class="ts mu">${j.where}</span></div><div class="col" style="align-items:flex-end"><span class="h2${j.dark ? ' or' : ''}" style="font-size:32px">${j.fit}%</span><span class="lab">Fit</span></div></div>
+   ${j.partner ? `<div class="row" style="gap:6px;flex-wrap:wrap"><span class="badge ok">${I('cap', 13, '#1E9E5A')}Via ${j.partner} partnership</span>${j.sks ? `<span class="badge ln">Counts for ${j.sks} SKS</span>` : ''}${j.isNew ? '<span class="badge sig">New</span>' : ''}</div>` : ''}
+   <div class="h3" style="font-size:22px">${j.role}</div><div class="row sbw"><span class="ts mu">${j.skills}</span><b class="ts${j.dark ? ' or' : ''}">Details →</b></div></div>`;
 
 const SCREENS = {
 // ───────── intern app ─────────
@@ -65,13 +77,11 @@ S04: () => phone(`${back('Step 2 of 3')}<div class="h1">Academic details<i>.</i>
 
 S06: () => phone(`<div class="row sbw"><div class="h1">Find internships<i>.</i></div><span class="av">AP</span></div>
   <div class="input">${I('search', 20, '#111')}Role, company, or skill</div>
-  <div class="row" style="gap:8px;overflow:hidden"><span class="chip on">For you</span><span class="chip">Hybrid</span><span class="chip">Bandung</span><span class="chip">3 months</span></div>
-  <span class="lab">Best fit for you</span>
-  <div class="card k" data-tour="match" data-go="S07" style="gap:14px"><div class="row" style="gap:14px"><span class="logo-sq" style="background:var(--sig)">N</span><div class="col grow"><b class="t">Nusantara Digital</b><span class="ts mu">Jakarta · Hybrid · 90 days</span></div><div class="col" style="align-items:flex-end"><span class="h2 or" style="font-size:32px">94%</span><span class="lab">Fit</span></div></div>
-   <div class="h3" style="font-size:22px">Product Management Intern</div><div class="row sbw"><span class="ts mu">User research · Figma · PRD</span><b class="ts or">Details →</b></div></div>
-  <div class="card" style="gap:14px"><div class="row" style="gap:14px"><span class="logo-sq" style="background:var(--ink);color:var(--page)">K</span><div class="col grow"><b class="t">Kopi Kilat</b><span class="ts mu">Bandung · On-site · 4 months</span></div><div class="col" style="align-items:flex-end"><span class="h2" style="font-size:32px">81%</span><span class="lab">Fit</span></div></div>
-   <div class="h3" style="font-size:22px">Growth Analyst Intern</div><div class="row sbw"><span class="ts mu">SQL · Experiments · Copywriting</span><b class="ts">Details →</b></div></div>
-  <div class="row ts mu" style="gap:8px">${I('clock', 16)}Nusantara applications close 30 Nov</div>`, { tab: 'S06', gap: 14 }),
+  <div class="row chips-x" style="gap:8px">${['For you', 'Campus partners', 'Hybrid', 'Bandung', '3 months'].map((c, i) => `<span class="chip${i ? '' : ' on'}">${c}</span>`).join('')}</div>
+  <div class="col scrl" id="jobs" style="gap:14px">
+  <span class="lab">Best fit for you · ${JOBS.length} openings</span>
+  ${JOBS.map(job).join('')}
+  <div class="row ts mu" style="gap:8px">${I('clock', 16)}Nusantara applications close 30 Nov</div></div>`, { tab: 'S06', gap: 14 }),
 
 S07: () => phone(`${back('Internship detail')}<div class="row" style="gap:14px"><span class="logo-sq" style="background:var(--sig);width:48px;height:48px">N</span><div class="col"><b class="h3">Product Management Intern</b><span class="ts mu">Nusantara Digital · Product & Technology</span></div></div>
   <div class="card o" data-tour="fit" style="gap:8px"><div class="row sbw"><div class="col"><span class="num" style="font-size:64px">94%</span><span class="lab" style="color:var(--ink)">AI fit</span></div>${I('spark', 26)}</div><span class="t">Researched 8 small businesses + used Figma in 3 projects. A fit for the payments team.</span></div>
