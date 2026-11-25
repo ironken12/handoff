@@ -12,7 +12,7 @@ const PAGES = {
       <p class="t mu" style="font-size:18px">Every intern starts where the last one left off. Handoff is one product for the whole internship, used by three people: the intern, the company and the university.</p>
       <div class="row" style="gap:12px"><button class="btn" data-nav="#/quick/1">Quick tour · 12 stops ${I('arr')}</button><button class="btn o" data-nav="#/tour/1">Full tour · ${TOUR.length} stops</button></div>
       <span class="lab">Quick tour ≈ 3 min · Full tour ≈ 8 min · use → and ← keys · Esc to explore freely</span>
-      <video class="vid" src="media/handoff-film.mp4" poster="media/poster.jpg" controls playsinline preload="none" style="width:100%;margin-top:6px"></video>
+      <video class="vid" src="media/handoff-film-v2.mp4" poster="media/poster-v2.jpg" controls playsinline preload="none" style="width:100%;margin-top:6px"></video>
       <span class="lab">The 2-minute film · Kenneth Kurniawan, Michael Janto, Stevie Konardi</span></div>
     <div class="col" style="gap:10px;width:520px"><span class="lab">Or jump to a chapter</span>${chapterList()}
       <p class="ts mu" style="margin-top:6px">This is a clickable design prototype with demo data. The MVP builds AI Buddy on real company SOPs, mentor escalation and the handover library first.</p></div></div>` }),
