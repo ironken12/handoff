@@ -13,6 +13,17 @@
     el.innerHTML = msg; el.classList.add('show'); clearTimeout(tt); tt = setTimeout(() => el.classList.remove('show'), 2600);
   }
 
+  // ── small pop-up form: modal('Title', [[label, placeholder, value]], 'OK label', vals => …) ──
+  function modal(title, fields, ok, onOk, sub = '') {
+    const m = document.createElement('div'); m.className = 'modal';
+    m.innerHTML = `<div class="mpanel fade"><div class="row sbw"><b class="h3">${title}</b><button class="icb" data-x aria-label="Close">✕</button></div>${sub ? `<span class="ts mu">${sub}</span>` : ''}
+      ${fields.map(([l, ph, v]) => `<div class="col" style="gap:7px"><span class="lab">${l}</span><div class="field"><input class="hin" placeholder="${esc(ph || '')}" value="${esc(v || '')}"></div></div>`).join('')}
+      <div class="row" style="justify-content:flex-end;gap:10px"><button class="btn o s" data-x>Cancel</button><button class="btn s" data-ok>${ok}</button></div></div>`;
+    document.body.appendChild(m); const first = m.querySelector('input'); first && first.focus();
+    const submit = () => { const vals = [...m.querySelectorAll('input')].map(i => i.value.trim()); if (!vals[0]) { first.focus(); toast('Fill in the first field'); return; } m.remove(); onOk(vals.map(esc)); };
+    m.addEventListener('click', e => { if (e.target === m || e.target.closest('[data-x]')) m.remove(); else if (e.target.closest('[data-ok]')) submit(); });
+  }
+
   // ── turn static fields into real inputs after every render ──
   function enhance() {
     const h = host(); if (!h || h.dataset.live) return; h.dataset.live = 1;
@@ -89,9 +100,18 @@
     [/^save template$/i, (b) => done(b, 'Saved', 'Logbook template saved')],
     [/^save$/i, (b) => done(b, 'Saved', 'Saved to your bookmarks')],
     [/upload/i, () => pick()],
-    [/export|download/i, (b) => toast(`${esc(b.textContent.trim())} · file ready (demo)`)],
+    [/export|download/i, (b) => { const r = REPORT[code()]; r ? (location.hash = '#/s/' + r) : toast(`${esc(b.textContent.trim())} · saved to your device (demo)`); }],
+    [/resubmit/i, (b) => done(b, 'Resubmitted', 'Resubmitted · Andi reviews it today')],
+    [/choose onboarding/i, (b) => done(b, 'Selected', 'Onboarding plan selected · it starts after the free cohort')],
+    [/talk to sales/i, () => toast('Our team will email you within 1 working day')],
+    [/send reminder/i, (b) => done(b, 'Reminder sent', 'Reminder sent to the student and their mentor')],
+    [/save changes/i, (b) => done(b, 'Saved', 'Settings saved')],
+    [/save draft/i, (b) => done(b, 'Draft saved', 'Saved as a draft in Openings')],
     [/create opening/i, () => toast('New opening created as a draft')],
-    [/invite member/i, () => toast('Invite link copied to clipboard')],
+    [/invite member/i, (b) => modal('Invite a team member', [['Work email', 'name@nusantara.id'], ['Role', 'Mentor, HR or Admin']], 'Send invite', ([e, r]) => {
+      const card = [...host().querySelectorAll('.card')].find(c => /Team members/.test(c.textContent)); const role = /admin/i.test(r) ? 'Admin' : /hr/i.test(r) ? 'HR' : 'Mentor';
+      card.insertAdjacentHTML('beforeend', `<div class="row fade" style="padding:13px 0;border-top:1px solid var(--line);gap:12px"><span class="av s">${e[0].toUpperCase()}</span><div class="col grow"><b class="ts">${e}</b><span class="ts mu">Invite sent · not joined yet</span></div><span class="badge ln">${role}</span></div>`);
+      const n = card.querySelector('.lab'); if (n) n.textContent = (parseInt(n.textContent) + 1) + ' people'; toast(`Invite sent to ${e}`); })],
     [/^call$|whatsapp/i, () => toast('Connecting you to Handoff Support…')],
     [/request leave/i, (b) => done(b, 'Requested', 'Leave request sent to Andi')],
     [/attachments/i, () => pick()],
@@ -128,8 +148,53 @@
       const j = { co, l: co[0].toUpperCase(), bg: '#1E9E5A', where: `${where} · ${dur}`, role, skills: `Open to ${open.join(', ')}`, fit: 72, tags, partner: 'ITB', sks: credit ? 20 : 0, isNew: 1 };
       ['co', 'l', 'where', 'role', 'skills'].forEach(k => j[k] = esc(j[k]));
       const at = JOBS.findIndex(x => x.fit < j.fit); JOBS.splice(at < 0 ? JOBS.length : at, 0, j);   // keep the list ranked by fit
+      if (typeof regJobs === 'function') regJobs();
     }
   }
+
+  // ── tables with search and filter chips (university Students and Companies) ──
+  function filterRows() {
+    const h = host(); if (!h) return; const inp = h.querySelector('.input .hin'), q = inp ? inp.value.trim().toLowerCase() : '';
+    const on = [...h.querySelectorAll('[data-filter] .chip.on')].slice(0).filter(c => c !== c.parentElement.firstElementChild).map(c => c.textContent.trim());
+    let shown = 0; h.querySelectorAll('.srow').forEach(r => { const hit = (!on.length || on.includes(r.dataset.tags)) && (!q || r.textContent.toLowerCase().includes(q)); r.style.display = hit ? '' : 'none'; shown += hit; });
+    if (!shown) toast('Nothing matches · try another filter');
+  }
+
+  // ── company publishes an opening (C09): goes to Openings and, for students, to Find internships ──
+  function publishOpening(btn) {
+    const h = host(), val = k => { const f = h.querySelector(`[data-f="${k}"]`), i = f && f.querySelector('input'); return (i ? i.value : '').trim(); };
+    const role = val('role'); if (!role) { toast('Give the opening a role title'); return; }
+    const where = val('where') || 'Jakarta · Hybrid', dur = val('dur') || '3 months', skills = [...h.querySelectorAll('[data-f="skills"] .chip.on')].map(c => c.textContent.trim());
+    OPENINGS.unshift({ role: esc(role), team: esc(val('team') || 'General'), where: esc(where), dur: esc(dur), apps: 0, st: 'Live', k: 'ok' });
+    const m = dur.match(/\d+/), tags = [...where.toLowerCase().split(/[^a-z-]+/).map(w => w.replace('-', '')).filter(Boolean), m ? m[0] + 'm' : ''].join(' ');
+    JOBS.splice(1, 0, { co: 'Nusantara Digital', l: 'N', bg: 'var(--sig)', where: esc(`${where} · ${dur}`), role: esc(role), skills: esc(skills.slice(0, 3).join(' · ') || 'Open to all skills'), fit: 88, tags });
+    regJobs(); location.hash = '#/s/C03'; toast(`Published · <b>${esc(role)}</b> is live for students`);
+  }
+
+  const ACT = {
+    flip: el => toast(el.classList.toggle('on') ? 'Switched to the back camera' : 'Switched to the front camera'),
+    reject: el => { const c = el.closest('div[style*="background:var(--dl)"]') || el.parentElement; c.style.opacity = .4; el.textContent = 'Rejected'; el.style.pointerEvents = 'none'; toast("Rejected · the card won't reach interns"); },
+    resend: el => { el.textContent = 'New code sent · resend again in 0:59'; el.style.pointerEvents = 'none'; toast('New code sent to alya.putri@students.itb.ac.id'); },
+    portfolio: () => pick(),
+    forgot: () => toast('Password reset link sent to your campus email'),
+    edit: el => { const c = el.closest('.card') || el.parentElement; c.contentEditable = c.isContentEditable ? 'false' : 'true'; c.focus(); toast(c.isContentEditable ? 'Editing · click any text to change it' : 'Changes kept'); },
+    restore: el => { el.textContent = 'Restored'; el.style.pointerEvents = 'none'; toast('Restored as a new version · the current one stays in history'); },
+    'read-all': el => { host().querySelectorAll('.dot').forEach(d => d.remove()); done(el, 'All read', 'All notifications marked as read'); },
+    'add-task': el => modal('Add a task', [['Task', 'e.g. Review the onboarding checklist'], ['Day', 'Day 21']], 'Add task', ([t, d]) => {
+      el.closest('.card').insertAdjacentHTML('beforeend', `<div class="row fade" style="padding:13px 10px;border-top:1px solid var(--line);gap:14px"><span class="lab" style="width:56px">${d || 'Day —'}</span><b class="ts grow">${t}</b><span class="badge ok">New</span></div>`); toast('Task added to Phase 1'); }),
+    'add-phase': el => modal('Add a phase', [['Phase', 'e.g. Phase 4 · Days 91–120'], ['Focus', 'e.g. Extend']], 'Add phase', ([p, f]) => {
+      el.insertAdjacentHTML('beforebegin', `<div class="card fade" style="gap:4px"><span class="lab">${p}</span><div class="row sbw"><b class="h3">${f || 'New phase'}</b><span class="lab">0 tasks</span></div></div>`); toast('Phase added to the roadmap'); }),
+    message: () => { const n = host().querySelector('.h1').textContent.replace(/\.$/, ''); modal(`Message ${n}`, [['Message', 'Write a message…']], 'Send', () => toast(`Sent to ${esc(n)} in the Handoff app`)); },
+    'add-partner': () => modal('Add a partner company', [['Company', 'e.g. Bumi Agritech'], ['Sector', 'e.g. Agriculture'], ['Partnership valid until', 'e.g. 2029']], 'Add partner', ([c, sct, y]) => {
+      PARTNERS.push([c, sct || '—', `Active until ${y || '2029'}`, 'ok', 0, 0]); render(); toast(`${c} added · you can post internships for them now`); }),
+    renew: el => { el.textContent = 'Renewal sent ✓'; el.style.pointerEvents = 'none'; toast('MoU renewal sent to Pasar Pintar for e-signature'); },
+    'invite-admin': () => modal('Invite to the career center', [['Name', 'e.g. Budi Santoso'], ['Role', 'e.g. Staff · FMIPA']], 'Send invite', ([n, r]) => {
+      host().querySelector('#admins').insertAdjacentHTML('beforeend', `<div class="row fade" style="padding:12px 0;border-top:1px solid var(--line);gap:12px"><span class="av s">${n.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}</span><div class="col grow"><b class="ts">${n}</b><span class="ts mu">${r || 'Staff'} · invite sent</span></div></div>`); toast(`Invite sent to ${n}`); }),
+    'publish-opening': el => publishOpening(el),
+    print: () => window.print(),
+  };
+  // export and download buttons open the matching demo report
+  const REPORT = { U02: 'RPT_UNI', U08: 'RPT_UNI', U01: 'RPT_UNI', U05: 'RPT_PART', U07: 'RPT_PART', C10: 'RPT_CO', C08: 'RPT_CO', S17: 'RPT_LOG', S21: 'RPT_REC' };
 
   const SIDE = { Openings: 'C02', Analytics: null, Companies: null, Settings: null };
 
@@ -137,12 +202,16 @@
     if (inTour() || !e.target.closest('#stage')) return;
     const t = e.target;
     if (t.closest('[data-go],[data-nav],[data-back],[data-menu]')) return;
+    const act = t.closest('[data-act]'); if (act && ACT[act.dataset.act]) { ACT[act.dataset.act](act); return; }
     const box = t.closest('.input, .field'); if (box) { const i = box.querySelector('input'); i && i.focus(); return; }
     const sendBtn = t.closest('.row > .av'); if (sendBtn && sendBtn.parentElement.querySelector(':scope > .input')) { send(sendBtn.parentElement); return; }
     const ck = t.closest('.ck'); if (ck) { if (ck.classList.contains('e')) { ck.classList.remove('e'); ck.innerHTML = CHECK; } else { ck.classList.add('e'); ck.innerHTML = ''; } return; }
     const tog = t.closest('.tog'); if (tog) { tog.classList.toggle('on'); toast(tog.classList.contains('on') ? 'Turned on' : 'Turned off'); return; }
     const chip = t.closest('.chip'); if (chip) {
-      if (/^\+ add$/i.test(chip.textContent.trim())) { const s = prompt('Add a skill'); if (s) chip.insertAdjacentHTML('beforebegin', `<span class="chip on">${esc(s)}</span>`); return; }
+      if (/^\+ add$/i.test(chip.textContent.trim())) { modal('Add a skill', [['Skill', 'e.g. Python']], 'Add', ([v]) => { chip.insertAdjacentHTML('beforebegin', `<span class="chip on" style="${chip.getAttribute('style') || ''}">${v}</span>`); toast(`${v} added`); }); return; }
+      if (chip.closest('[data-filter]')) { const all = [...chip.parentElement.querySelectorAll('.chip')], first = all[0];
+        if (chip === first) all.forEach(c => c.classList.toggle('on', c === first)); else { chip.classList.toggle('on'); first.classList.toggle('on', !all.slice(1).some(c => c.classList.contains('on'))); }
+        filterRows(); return; }
       const scr = code(); if (scr === 'S14') { const i = host().querySelector('.hin'); i.value = chip.textContent.trim() + '?'; send(i.closest('.row')); return; }
       if (scr === 'S06' && chip.closest('.chips-x')) { const all = [...chip.parentElement.querySelectorAll('.chip')], fy = all[0];
         if (chip === fy) all.forEach(c => c.classList.toggle('on', c === fy)); else { chip.classList.toggle('on'); fy.classList.toggle('on', !all.slice(1).some(c => c.classList.contains('on'))); }
@@ -158,6 +227,7 @@
   document.addEventListener('keydown', e => {
     const i = e.target; if (!(i instanceof HTMLInputElement) || !i.classList.contains('hin')) return;
     e.stopPropagation();   // typing must not trigger the tour's arrow / Enter keys
+    const md = i.closest('.modal'); if (md) { if (e.key === 'Enter') md.querySelector('[data-ok]').click(); if (e.key === 'Escape') md.remove(); return; }
     if (e.key === 'Enter') { const box = i.closest('.input'); if (!box) return; const par = box.parentElement;
       if (par.classList.contains('row') && par.querySelector(':scope > .av')) send(par);          // chat box with a send button
       else if (/note|message|answer|write/i.test(i.placeholder)) send(box); }                     // note box inside a card
@@ -167,6 +237,7 @@
     if (i.dataset.otp && i.value) { const f = i.closest('.field'), n = f && f.nextElementSibling && f.nextElementSibling.querySelector('input'); n && n.focus(); }
     // search boxes filter the cards on the screen
     if (code() === 'S06' && /role, company/i.test(i.placeholder)) { filterJobs(); return; }
+    if (host() && host().querySelector('.srow') && /search/i.test(i.placeholder)) { filterRows(); return; }
     if (/search|role, company/i.test(i.placeholder)) { const q = i.value.trim().toLowerCase(), h = host(); let n = 0, shown = 0;
       h.querySelectorAll('.card').forEach(c => { if (c.contains(i)) return; const hit = !q || c.textContent.toLowerCase().includes(q); c.style.display = hit ? '' : 'none'; n++; shown += hit; });
       if (q && n && !shown) toast('No results · try another role, company or skill'); }
