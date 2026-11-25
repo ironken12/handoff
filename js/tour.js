@@ -4,7 +4,7 @@ const CHAPTERS = [
   { name: 'Learn on the job', who: 'Intern app · phone', blurb: 'Daily home, attendance, roadmap, AI Buddy, mentor escalation and the voice logbook.' },
   { name: 'Hand over & move on', who: 'Intern app · phone', blurb: 'Pass knowledge to the next intern and leave with a verified record.' },
   { name: 'Company dashboard', who: 'Mentors, HR & admins · desktop', blurb: 'Hire, onboard, answer questions, grow the knowledge library and measure it.' },
-  { name: 'University dashboard', who: 'Career center · desktop', blurb: 'Monitor every student, set the logbook format and verify records.' },
+  { name: 'University dashboard', who: 'Career center · desktop', blurb: 'Post partner internships, monitor every student, set the logbook format and verify records.' },
 ];
 // [screen, highlighted element, chapter, title, what it is, why it matters]
 const TOUR = [
@@ -48,10 +48,11 @@ const TOUR = [
   ['C07', 'plan', 3, 'Business model', 'Recruiting is free and the first cohort is free. After that, companies pay per active intern for onboarding and handover.', 'Easy to start, and revenue grows with use. The price shown is illustrative.'],
 
   ['U01', 'risk', 4, 'University overview', 'The career center sees every student’s internship status, and who is at risk: late logbooks, unverified mentors, no activity.', 'Problems are caught early, not at the end of the semester.'],
+  ['U05', 'post', 4, 'Partner internships from the campus', 'Universities with company partnerships post internships themselves: pick an MoU partner, set the role, seats, which faculties can apply and whether it counts for credit. It shows up in the intern app, tagged as a campus partner.', 'Partnerships the campus already has become real placements, and students find them next to every other internship.'],
   ['U02', 'table', 4, 'Internship monitoring', 'Filter by faculty, program, company or cohort, and follow each student’s progress, logbook and handover.', 'No more chasing companies by email.'],
   ['U03', 'itb', 4, 'The campus’s own logbook format', 'The university sets logbook sections, frequency and deadlines once. Every intern’s log comes out in that format.', 'One logbook serves both the company and the campus.'],
   ['U04', 'checks', 4, 'Verify and issue', 'The campus checks identity, company, mentor sign-off, logbooks and handover, then issues the verified record.', 'A record employers can trust, with a full audit trail.'],
 ];
 // the quick tour: 12 stops for judges short on time (1-based stop numbers in TOUR)
-const QUICK = [1, 4, 10, 13, 14, 15, 20, 21, 25, 30, 36, 39];
+const QUICK = [1, 4, 10, 13, 14, 15, 20, 21, 25, 30, 36, 40];
 const chapterStart = c => TOUR.findIndex(t => t[2] === c) + 1;

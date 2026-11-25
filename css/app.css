@@ -37,7 +37,7 @@ svg{display:block;flex:none}
 .desk{width:1440px;height:900px;border-radius:16px;overflow:hidden;display:flex;background:var(--page);box-shadow:0 40px 80px rgba(0,0,0,.22)}
 .side{width:248px;background:var(--ink);color:var(--page);display:flex;flex-direction:column;padding:28px 16px 20px;flex:none}
 .side .logo{font-size:30px;padding:0 12px}
-.side .org{font:500 11px 'Geist Mono';letter-spacing:.08em;text-transform:uppercase;color:var(--dim);padding:6px 12px 26px;white-space:nowrap}
+.side .org{font:500 11px/1.4 'Geist Mono';letter-spacing:.08em;text-transform:uppercase;color:var(--dim);padding:6px 12px 26px}
 .side a{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:999px;font-size:15px;color:var(--page);text-decoration:none;cursor:pointer}
 .side a.on{background:var(--sig);color:var(--ink);font-weight:600}
 .side a .n{margin-left:auto;background:var(--sig);color:var(--ink);font:600 12px Geist;border-radius:999px;padding:2px 8px}
@@ -188,3 +188,6 @@ svg{display:block;flex:none}
 .bub.typing{color:var(--dim);letter-spacing:.2em}
 #toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,20px);background:#111;color:#EFECE4;padding:12px 18px;border-radius:14px;font:500 14px/1.4 Geist,system-ui,sans-serif;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:100;max-width:90vw;box-shadow:0 8px 30px rgba(0,0,0,.25)}
 #toast.show{opacity:1;transform:translate(-50%,0)}
+/* scrolling list + chip row on the internship search */
+.scrl{flex:1;min-height:0;overflow-y:auto;margin:0 -20px;padding:0 20px 8px;scrollbar-width:none}.scrl::-webkit-scrollbar{display:none}
+.chips-x{overflow-x:auto;flex:none;scrollbar-width:none;margin:0 -20px;padding:0 20px}.chips-x::-webkit-scrollbar{display:none}
